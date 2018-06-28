@@ -1,119 +1,114 @@
-try:
-    import tkinter as tk
-    from tkinter import ttk, Text, Entry, Button
-except ImportError:
-    import Tkinter as tk
-    import ttk
-
+import tkinter as tk
+from tkinter import ttk
 from PIL import ImageTk, Image
-from tkcalendar import Calendar, DateEntry
+from tkcalendar import Calendar
 
 
-def cal_widget():
-    def print_sel():
-        current_date = cal.selection_get()
+class CalenderUI():
+    def __init__(self, root):
+        self.top = tk.Toplevel(root)
 
-    top = tk.Toplevel(root)
+        self.cal = Calendar(self.top, font="Arial 14", selectmode='day',
+                            cursor="hand1", year=2018, month=2, day=5)
+        self.cal.pack(fill="both", expand=True)
+        ttk.Button(self.top, text="ok", command=self.print_sel).pack()
+        ttk.Button(self.top, text="exit", command=self.quit1).pack()
 
-    cal = Calendar(top,
-                   font="Arial 14", selectmode='day',
-                   cursor="hand1", year=2018, month=2, day=5, textvariable=variable)
-    cal.pack(fill="both", expand=True)
-    ttk.Button(top, text="ok", command=print_sel).pack()
+        self.date = ''
 
+        self.top.grab_set()
 
-def date_entry_widget():
-    top = tk.Toplevel(root)
+    def print_sel(self):
+        self.date = self.cal.selection_get()
 
-    ttk.Label(top, text='Choose date').pack(padx=10, pady=10)
-
-    cal = DateEntry(top, width=12, background='darkblue',
-                    foreground='white', borderwidth=2)
-    cal.pack(padx=10, pady=10)
+    def quit1(self):
+        self.top.destroy()
 
 
-def print_time():
-    current_time = e.get()
-    print(e.get())
+class App:
+    def __init__(self):
+        self.root = tk.Tk()
+        s = ttk.Style(self.root)
+        s.theme_use('clam')
 
+        self.img_folder = '/nobackup/users/mos/data/TSI/DBASE/201606/20160611_tsi-cabauw_realtime/'
 
-def on_enter(event):
-    current_time = e.get()
-    print(e.get())
+        size_x = 800
+        size_y = 500
+        self.root.geometry('{}x{}'.format(size_x, size_y))
 
+        self.date = '2016-06-11'
+        self.time = ''
 
-def callback(event):
-    # select text
-    event.widget.select_range(0, 'end')
-    # move cursor to the end
-    event.widget.icursor('end')
+        # image 1
+        img = ImageTk.PhotoImage(Image.open('images/20170828112200.jpg'))
+        self.panel1 = tk.Label(self.root, image=img)
+        self.panel1.grid(row=3, column=1, rowspan=2, sticky='NSEW')
 
+        # image 2
+        img2 = ImageTk.PhotoImage(Image.open('images/20170828112200.png'))
+        self.panel2 = tk.Label(self.root, image=img2)
+        self.panel2.grid(row=3, column=2, rowspan=2, sticky='NSEW')
 
-def update_image(event):
-    img_new = ImageTk.PhotoImage(Image.open('images/20160611140500.jpg'))
-    panel1.configure(image=img_new)
-    panel1.image = img_new
-    img_new = ImageTk.PhotoImage(Image.open('images/20160611140500.png'))
-    panel2.configure(image=img_new)
-    panel2.image = img_new
+        # calendar
+        cal_button = ttk.Button(self.root, text='Select date', command=self.get_date)
+        cal_button.grid(row=3, column=4, columnspan=2, sticky='EW')
 
+        # time
+        self.e = tk.Entry(self.root, width=10)
+        self.e.focus_set()
+        self.e.grid(row=4, column=4)
+        self.e.delete(0, tk.END)
+        self.e.insert(0, '12:00')
+        self.e.bind('<Control-KeyRelease-a>')
 
-root = tk.Tk()
+        # time button
+        time_button = tk.Button(self.root, text='Select time', width=10, command=self.get_time)
+        time_button.grid(row=4, column=5)
 
-size_x = 800
-size_y = 500
-root.geometry('{}x{}'.format(size_x, size_y))
-s = ttk.Style(root)
-s.theme_use('clam')
+        # title
+        title = tk.Text(self.root, height=1)
+        title.insert(tk.INSERT, 'Select a date and time')
+        title.grid(row=1, column=1, columnspan=5)
 
-root.bind('<Return>', on_enter)
+        # info
+        info = tk.Text(self.root, height=3)
+        info.insert(tk.INSERT, 'Cloud cover:x \nAzimuth:x \nAltitude:x')
+        info.grid(row=6, column=1, columnspan=4)
 
-# image 1
-img = ImageTk.PhotoImage(Image.open('images/20170828112200.jpg'))
-panel1 = tk.Label(root, image=img)
-panel1.grid(row=3, column=1, rowspan=2, sticky='NSEW')
+        # alignments
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(2, weight=1)
+        self.root.grid_rowconfigure(5, weight=1)
+        self.root.grid_rowconfigure(7, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(3, weight=1)
+        self.root.grid_columnconfigure(6, weight=1)
 
-# image 2
-img2 = ImageTk.PhotoImage(Image.open('images/20170828112200.png'))
-panel2 = tk.Label(root, image = img2)
-panel2.grid(row=3, column=2, rowspan=2, sticky='NSEW')
+        self.root.mainloop()
 
-root.bind("<u>", update_image)
+    def get_date(self):
+        cal = CalenderUI(self.root)
+        self.root.wait_window(cal.top)
+        self.date = cal.date
+        self.update_image()
 
-# calendar
-cal_button = ttk.Button(root, text='Select date', command=CalenderUI)
-cal_button.grid(row=3, column=4, columnspan=2, sticky='EW')
+    def get_time(self):
+        self.time = self.e.get()
+        self.update_image()
 
-# time
-e = Entry(root, width=10)
-e.grid(row=4, column=4)
-e.delete(0, tk.END)
-e.insert(0, 'hour:minute')
-e.bind('<Control-KeyRelease-a>', callback)
+    def update_image(self):
+        date_time=self.date + self.time
+        date_time = date_time.replace(':', '')
+        date_time = date_time.replace('-', '')
+        filename1 = date_time + '00.jpg'
+        filename2 = date_time + '00.png'
 
-# time button
-time_button = Button(root, text='Go', width=10, command=print_time)
-time_button.grid(row=4, column=5)
+        img_new = ImageTk.PhotoImage(Image.open(self.img_folder + filename1))
+        self.panel1.configure(image=img_new)
+        self.panel1.image = img_new
+        img_new2 = ImageTk.PhotoImage(Image.open(self.img_folder + filename2))
+        self.panel2.configure(image=img_new2)
+        self.panel2.image = img_new2
 
-# title
-title = Text(root, height=1)
-title.insert(tk.INSERT,'Select a date and time')
-title.grid(row=1, column=1, columnspan=5)
-
-# info
-info = Text(root, height=3)
-info.insert(tk.INSERT,'Cloud cover:x \nAzimuth:x \nAltitude:x')
-info.grid(row=6, column=1, columnspan=4)
-
-# alignments
-root.grid_rowconfigure(0, weight=1)
-root.grid_rowconfigure(2, weight=1)
-root.grid_rowconfigure(5, weight=1)
-root.grid_rowconfigure(7, weight=1)
-root.grid_columnconfigure(0, weight=1)
-root.grid_columnconfigure(3, weight=1)
-root.grid_columnconfigure(6, weight=1)
-
-# ttk.Button(root, text='DateEntry', command=date_entry_widget).pack(padx=10, pady=10)
-
-root.mainloop()
+app = App()
